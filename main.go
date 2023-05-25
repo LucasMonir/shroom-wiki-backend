@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -23,7 +24,7 @@ var shrooms = []shroom{
 }
 
 func getShrooms(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, shrooms)
+	c.JSON(http.StatusOK, shrooms)
 }
 
 func postShrooms(c *gin.Context) {
@@ -34,13 +35,18 @@ func postShrooms(c *gin.Context) {
 	}
 
 	shrooms = append(shrooms, newShroom)
-	c.IndentedJSON(http.StatusCreated, newShroom)
+	c.JSON(http.StatusCreated, newShroom)
 }
 
 func main() {
 	router := gin.Default()
-	router.GET("/albums", getShrooms)
-	router.POST("/albums", postShrooms)
+
+	config := cors.DefaultConfig()
+	config.AllowOrigins = []string{"http://localhost:3000"}
+	router.Use(cors.New(config))
+
+	router.GET("/shrooms", getShrooms)
+	router.POST("/shrooms", postShrooms)
 
 	router.Run("localhost:4200")
 }
