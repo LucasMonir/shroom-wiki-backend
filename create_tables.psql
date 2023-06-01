@@ -1,0 +1,47 @@
+-- Table: public.genus
+
+-- DROP TABLE IF EXISTS public.genus;
+
+CREATE TABLE IF NOT EXISTS public.genus
+(
+    id integer NOT NULL DEFAULT nextval('genus_id_seq'::regclass),
+    genus text COLLATE pg_catalog."default" NOT NULL,
+    CONSTRAINT genus_pkey PRIMARY KEY (id)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.genus
+    OWNER to postgres;
+
+
+
+
+
+
+    
+
+-- Table: public.mushroom
+
+-- DROP TABLE IF EXISTS public.mushroom;
+
+CREATE TABLE IF NOT EXISTS public.mushroom
+(
+    id integer NOT NULL DEFAULT nextval('mushroom_id_seq'::regclass),
+    name text COLLATE pg_catalog."default",
+    species text COLLATE pg_catalog."default" NOT NULL,
+    description text COLLATE pg_catalog."default" NOT NULL,
+    img text COLLATE pg_catalog."default" NOT NULL,
+    genus integer,
+    CONSTRAINT mushroom_pkey PRIMARY KEY (id),
+    CONSTRAINT genus_id FOREIGN KEY (genus)
+        REFERENCES public.genus (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.mushroom
+    OWNER to postgres;
