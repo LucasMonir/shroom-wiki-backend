@@ -19,6 +19,8 @@ type shroom struct {
 	Description string `json:"description"`
 	Genus       string `json:"genus"`
 	Species     string `json:"species"`
+	Edible      string `json:"edible"`
+	Toxic       string `json:"toxic"`
 	Img         string `json:"img"`
 }
 
