@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -19,8 +20,6 @@ type shroom struct {
 	Description string `json:"description"`
 	Genus       string `json:"genus"`
 	Species     string `json:"species"`
-	Edible      string `json:"edible"`
-	Toxic       string `json:"toxic"`
 	Img         string `json:"img"`
 }
 
@@ -61,6 +60,38 @@ func getShrooms(c *gin.Context) {
 	c.JSON(http.StatusOK, shrooms)
 }
 
+func getShroomById(c *gin.Context) {
+	id, parseErr := strconv.Atoi(c.DefaultQuery("id", ""))
+
+	hasError(parseErr)
+
+	var err error
+	var rows *sql.Rows
+
+	if id != 0 {
+		rows, err = db.Query(`select mushroom.id, name, description, img, genus.genus, species from mushroom join genus on genus.id = mushroom.genus where mushroom.id = $1`, id)
+		defer rows.Close()
+
+		shrooms := make([]shroom, 0)
+
+		for rows.Next() {
+
+			mushroom := shroom{}
+
+			err = rows.Scan(&mushroom.ID, &mushroom.Name, &mushroom.Description, &mushroom.Img, &mushroom.Genus, &mushroom.Species)
+			hasError(err)
+
+			shrooms = append(shrooms, mushroom)
+		}
+
+		hasError(err)
+		fmt.Println(shrooms)
+		c.JSON(http.StatusOK, shrooms)
+	}
+
+	c.JSON(http.StatusNotFound, "No Musroom found for the id submitted")
+}
+
 func postShrooms(c *gin.Context) {
 	var newShroom shroom
 
@@ -91,12 +122,13 @@ func main() {
 
 	router := gin.Default()
 	initDb()
+
 	config := cors.DefaultConfig()
 	config.AllowOrigins = []string{"http://localhost:3000"}
+
 	router.Use(cors.New(config))
-
 	router.GET("/shrooms", getShrooms)
+	router.GET("/shroom", getShroomById)
 	router.POST("/shrooms", postShrooms)
-
 	router.Run("localhost:4200")
 }
