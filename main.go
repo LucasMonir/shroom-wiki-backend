@@ -38,7 +38,6 @@ func hasError(err error) {
 
 func getShrooms(c *gin.Context) {
 	rows, err := db.Query(`select mushroom.id, name, description, img, genus.genus, species from mushroom join genus on genus.id = mushroom.genus`)
-	fmt.Println(rows)
 	hasError(err)
 
 	defer rows.Close()
@@ -58,6 +57,26 @@ func getShrooms(c *gin.Context) {
 	hasError(err)
 	fmt.Println(shrooms)
 	c.JSON(http.StatusOK, shrooms)
+}
+
+func getRandomShroom(c *gin.Context) {
+	rows, err := db.Query(`select mushroom.id, name, description, img, genus.genus, species from mushroom join genus on genus.id = mushroom.genus order by random() limit 1;`)
+
+	hasError(err)
+
+	defer rows.Close()
+
+	randomMushroom := shroom{}
+
+	for rows.Next() {
+
+		err = rows.Scan(&randomMushroom.ID, &randomMushroom.Name, &randomMushroom.Description, &randomMushroom.Img, &randomMushroom.Genus, &randomMushroom.Species)
+		hasError(err)
+	}
+
+	hasError(err)
+	fmt.Println(randomMushroom)
+	c.JSON(http.StatusOK, randomMushroom)
 }
 
 func getShroomById(c *gin.Context) {
@@ -130,5 +149,6 @@ func main() {
 	router.GET("/shrooms", getShrooms)
 	router.GET("/shroom", getShroomById)
 	router.POST("/shrooms", postShrooms)
+	router.GET("/randomShroom", getRandomShroom)
 	router.Run("localhost:4200")
 }
