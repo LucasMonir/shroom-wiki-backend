@@ -21,13 +21,8 @@ type shroom struct {
 	Genus       string `json:"genus"`
 	Species     string `json:"species"`
 	Img         string `json:"img"`
-}
-
-var shrooms = []shroom{
-	{ID: "1", Name: "Amanita phalloides", Description: "Amanita phalloides, commonly known as the death cap, is a deadly poisonous basidiomycete fungus, one of many in the genus Amanita.", Img: "https://encrypted-tbn2.gstatic.com/licensed-image?q=tbn:ANd9GcSjfmn3dnqwqbz-trVZPIF4nX9SIVKGJxa0wfVjQ1CJAx9-zUmHuEXmvMKdhfI4veqUrzFxce1MhFjEkLA"},
-	{ID: "4", Name: "Amanita phanterina", Description: "Amanita pantherina, also known as the panther cap, false blusher, and the panther amanita due to its similarity to the true blusher, is a species of fungus found in Europe and Western Asia", Img: "https://encrypted-tbn1.gstatic.com/licensed-image?q=tbn:ANd9GcS2jPfF9E740FTgearAS0JLauc6sn_nPleiKl4Yg56krHxH5-K94dsnxx4xj8FEa8YdQxGhcKqUWsAFYz4"},
-	{ID: "3", Name: "Amanita muscaria", Description: "Amanita muscaria, commonly known as the fly agaric or fly amanita, is a basidiomycete of the genus Amanita. It is also a muscimol mushroom.", Img: "https://www.naturezadivina.com.br/media/amasty/blog/amanita-muscaria.jpg"},
-	{ID: "2", Name: "Amanita roseolamellata", Description: "This species is a readily recognisable Amanita with few collections. The habitat of this species is highly fragmented and in decline. Many of these areas are small patches of forest surrounded by urban or agricultural land, with recent (within the last few decades) severe decline in forest extent and increasing pressure for urban development.", Img: "http://www.amanitaceae.org/image/uploaded/r/roseolam139307_web.jpg"},
+	Edible      string `json:"edible"`
+	Toxic       string `json:"toxic"`
 }
 
 func hasError(err error) {
@@ -37,7 +32,7 @@ func hasError(err error) {
 }
 
 func getShrooms(c *gin.Context) {
-	rows, err := db.Query(`select mushroom.id, name, description, img, genus.genus, species from mushroom join genus on genus.id = mushroom.genus`)
+	rows, err := db.Query(`select mushroom.id, name, description, img, genus.genus, species, edible, toxic  from mushroom join genus on genus.id = mushroom.genus`)
 	hasError(err)
 
 	defer rows.Close()
@@ -48,7 +43,7 @@ func getShrooms(c *gin.Context) {
 
 		mushroom := shroom{}
 
-		err = rows.Scan(&mushroom.ID, &mushroom.Name, &mushroom.Description, &mushroom.Img, &mushroom.Genus, &mushroom.Species)
+		err = rows.Scan(&mushroom.ID, &mushroom.Name, &mushroom.Description, &mushroom.Img, &mushroom.Genus, &mushroom.Species, &mushroom.Edible, &mushroom.Toxic)
 		hasError(err)
 
 		shrooms = append(shrooms, mushroom)
@@ -60,7 +55,7 @@ func getShrooms(c *gin.Context) {
 }
 
 func getRandomShroom(c *gin.Context) {
-	rows, err := db.Query(`select mushroom.id, name, description, img, genus.genus, species from mushroom join genus on genus.id = mushroom.genus order by random() limit 1;`)
+	rows, err := db.Query(`select mushroom.id, name, description, img, genus.genus, species, edible, toxic from mushroom join genus on genus.id = mushroom.genus order by random() limit 1;`)
 
 	hasError(err)
 
@@ -70,7 +65,7 @@ func getRandomShroom(c *gin.Context) {
 
 	for rows.Next() {
 
-		err = rows.Scan(&randomMushroom.ID, &randomMushroom.Name, &randomMushroom.Description, &randomMushroom.Img, &randomMushroom.Genus, &randomMushroom.Species)
+		err = rows.Scan(&randomMushroom.ID, &randomMushroom.Name, &randomMushroom.Description, &randomMushroom.Img, &randomMushroom.Genus, &randomMushroom.Species, &randomMushroom.Edible, &randomMushroom.Toxic)
 		hasError(err)
 	}
 
@@ -88,7 +83,7 @@ func getShroomById(c *gin.Context) {
 	var rows *sql.Rows
 
 	if id != 0 {
-		rows, err = db.Query(`select mushroom.id, name, description, img, genus.genus, species from mushroom join genus on genus.id = mushroom.genus where mushroom.id = $1`, id)
+		rows, err = db.Query(`select mushroom.id, name, description, img, genus.genus, species, edible, toxic from mushroom join genus on genus.id = mushroom.genus where mushroom.id = $1`, id)
 		defer rows.Close()
 
 		shrooms := make([]shroom, 0)
@@ -97,7 +92,7 @@ func getShroomById(c *gin.Context) {
 
 			mushroom := shroom{}
 
-			err = rows.Scan(&mushroom.ID, &mushroom.Name, &mushroom.Description, &mushroom.Img, &mushroom.Genus, &mushroom.Species)
+			err = rows.Scan(&mushroom.ID, &mushroom.Name, &mushroom.Description, &mushroom.Img, &mushroom.Genus, &mushroom.Species, &mushroom.Edible, &mushroom.Toxic)
 			hasError(err)
 
 			shrooms = append(shrooms, mushroom)
@@ -111,16 +106,15 @@ func getShroomById(c *gin.Context) {
 	c.JSON(http.StatusNotFound, "No Musroom found for the id submitted")
 }
 
-func postShrooms(c *gin.Context) {
-	var newShroom shroom
+// func postShrooms(c *gin.Context) {
+// 	var newShroom shroom
 
-	if err := c.BindJSON(&newShroom); err != nil {
-		return
-	}
-
-	shrooms = append(shrooms, newShroom)
-	c.JSON(http.StatusCreated, newShroom)
-}
+// 	if err := c.BindJSON(&newShroom); err != nil {
+// 		return
+// 	}
+// 	addMushroom := "INSERT INTO `mushroom` (``,``,``,``,``) values "
+// 	c.JSON(http.StatusCreated, newShroom)
+// }
 
 func initDb() {
 	var err error
@@ -167,7 +161,7 @@ func main() {
 	router.Use(cors.New(config))
 	router.GET("/shrooms", getShrooms)
 	router.GET("/shroom", getShroomById)
-	router.POST("/shrooms", postShrooms)
+	// router.POST("/shrooms", postShrooms)
 	router.GET("/randomShroom", getRandomShroom)
 	router.Run("localhost:4200")
 }
