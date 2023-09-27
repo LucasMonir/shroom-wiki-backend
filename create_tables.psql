@@ -13,12 +13,6 @@ TABLESPACE pg_default;
 
 ALTER TABLE IF EXISTS public.genus
     OWNER to postgres;
-
-
-
-
-
-
     
 
 -- Table: public.mushroom
