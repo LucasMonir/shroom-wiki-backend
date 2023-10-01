@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	middleware "shroom-wiki-backend/Middleware"
 	"strconv"
 
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
+	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
 )
 
@@ -31,7 +31,7 @@ func hasError(err error) {
 	}
 }
 
-func getShrooms(c *gin.Context) {
+func getShrooms(writter http.ResponseWriter, request *http.Request) {
 	rows, err := db.Query(`select mushroom.id, name, description, img, genus.genus, species, edible, toxic  from mushroom join genus on genus.id = mushroom.genus`)
 	hasError(err)
 
@@ -51,10 +51,10 @@ func getShrooms(c *gin.Context) {
 
 	hasError(err)
 	fmt.Println(shrooms)
-	c.JSON(http.StatusOK, shrooms)
+	middleware.JSON(writter, http.StatusOK, shrooms)
 }
 
-func getRandomShroom(c *gin.Context) {
+func getRandomShroom(writter http.ResponseWriter, request *http.Request) {
 	rows, err := db.Query(`select mushroom.id, name, description, img, genus.genus, species, edible, toxic from mushroom join genus on genus.id = mushroom.genus order by random() limit 1;`)
 
 	hasError(err)
@@ -71,13 +71,13 @@ func getRandomShroom(c *gin.Context) {
 
 	hasError(err)
 	fmt.Println(randomMushroom)
-	c.JSON(http.StatusOK, randomMushroom)
+	middleware.JSON(writter, http.StatusOK, randomMushroom)
 }
 
-func getShroomById(c *gin.Context) {
-	id, parseErr := strconv.Atoi(c.DefaultQuery("id", ""))
+func getShroomById(writter http.ResponseWriter, request *http.Request) {
+	id, parseError := strconv.Atoi(request.URL.Query().Get("id"))
 
-	hasError(parseErr)
+	hasError(parseError)
 
 	var err error
 	var rows *sql.Rows
@@ -100,21 +100,11 @@ func getShroomById(c *gin.Context) {
 
 		hasError(err)
 		fmt.Println(shrooms)
-		c.JSON(http.StatusOK, shrooms)
+		middleware.JSON(writter, http.StatusNotFound, shrooms)
 	}
 
-	c.JSON(http.StatusNotFound, "No Musroom found for the id submitted")
+	middleware.JSON(writter, http.StatusNotFound, "Nothing found")
 }
-
-// func postShrooms(c *gin.Context) {
-// 	var newShroom shroom
-
-// 	if err := c.BindJSON(&newShroom); err != nil {
-// 		return
-// 	}
-// 	addMushroom := "INSERT INTO `mushroom` (``,``,``,``,``) values "
-// 	c.JSON(http.StatusCreated, newShroom)
-// }
 
 func initDb() {
 	var err error
@@ -131,37 +121,13 @@ func initDb() {
 	}
 }
 
-func CORSMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-
-		c.Header("Access-Control-Allow-Origin", "*")
-		c.Header("Access-Control-Allow-Credentials", "true")
-		c.Header("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-		c.Header("Access-Control-Allow-Methods", "POST,HEAD,PATCH, OPTIONS, GET, PUT")
-
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(204)
-			return
-		}
-
-		c.Next()
-	}
-}
-
 func main() {
-
-	router := gin.Default()
 	initDb()
+	router := mux.NewRouter()
 
-	config := cors.DefaultConfig()
-	router.Use(CORSMiddleware())
+	router.HandleFunc("/shrooms", getShrooms).Methods(http.MethodGet)
+	router.HandleFunc("/shroom", getShroomById).Methods(http.MethodGet)
+	router.HandleFunc("/randomShroom", getRandomShroom).Methods(http.MethodGet)
 
-	config.AllowOrigins = []string{"http://localhost:3000", "http://192.168.0.147:3000"}
-
-	router.Use(cors.New(config))
-	router.GET("/shrooms", getShrooms)
-	router.GET("/shroom", getShroomById)
-	// router.POST("/shrooms", postShrooms)
-	router.GET("/randomShroom", getRandomShroom)
-	router.Run("localhost:4200")
+	http.ListenAndServe(":4200", router)
 }
