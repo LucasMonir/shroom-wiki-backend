@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 	auth "shroom-wiki-backend/Auth"
-	"shroom-wiki-backend/middleware"
+	middleware "shroom-wiki-backend/Middleware"
 	"time"
 
 	"github.com/google/uuid"
