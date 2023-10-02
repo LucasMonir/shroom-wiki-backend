@@ -1,41 +1,170 @@
--- Table: public.genus
+--
+-- PostgreSQL database dump
+--
 
--- DROP TABLE IF EXISTS public.genus;
+-- Dumped from database version 15.3
+-- Dumped by pg_dump version 15.3
 
-CREATE TABLE IF NOT EXISTS public.genus
-(
-    id integer NOT NULL DEFAULT nextval('genus_id_seq'::regclass),
-    genus text COLLATE pg_catalog."default" NOT NULL,
-    CONSTRAINT genus_pkey PRIMARY KEY (id)
-)
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
 
-TABLESPACE pg_default;
+SET default_tablespace = '';
 
-ALTER TABLE IF EXISTS public.genus
-    OWNER to postgres;
-    
+SET default_table_access_method = heap;
 
--- Table: public.mushroom
+--
+-- Name: genus; Type: TABLE; Schema: public; Owner: postgres
+--
 
--- DROP TABLE IF EXISTS public.mushroom;
+CREATE TABLE public.genus (
+    id integer NOT NULL,
+    genus text NOT NULL
+);
 
-CREATE TABLE IF NOT EXISTS public.mushroom
-(
-    id integer NOT NULL DEFAULT nextval('mushroom_id_seq'::regclass),
-    name text COLLATE pg_catalog."default",
-    species text COLLATE pg_catalog."default" NOT NULL,
-    description text COLLATE pg_catalog."default" NOT NULL,
-    img text COLLATE pg_catalog."default" NOT NULL,
+
+ALTER TABLE public.genus OWNER TO postgres;
+
+--
+-- Name: genus_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.genus_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.genus_id_seq OWNER TO postgres;
+
+--
+-- Name: genus_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.genus_id_seq OWNED BY public.genus.id;
+
+
+--
+-- Name: mushroom; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.mushroom (
+    id integer NOT NULL,
+    name text,
+    species text NOT NULL,
+    description text NOT NULL,
+    img text NOT NULL,
     genus integer,
-    CONSTRAINT mushroom_pkey PRIMARY KEY (id),
-    CONSTRAINT genus_id FOREIGN KEY (genus)
-        REFERENCES public.genus (id) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION
-        NOT VALID
-)
+    edible boolean,
+    toxic boolean
+);
 
-TABLESPACE pg_default;
 
-ALTER TABLE IF EXISTS public.mushroom
-    OWNER to postgres;
+ALTER TABLE public.mushroom OWNER TO postgres;
+
+--
+-- Name: mushroom_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.mushroom_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.mushroom_id_seq OWNER TO postgres;
+
+--
+-- Name: mushroom_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.mushroom_id_seq OWNED BY public.mushroom.id;
+
+
+--
+-- Name: genus id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.genus ALTER COLUMN id SET DEFAULT nextval('public.genus_id_seq'::regclass);
+
+
+--
+-- Name: mushroom id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.mushroom ALTER COLUMN id SET DEFAULT nextval('public.mushroom_id_seq'::regclass);
+
+
+--
+-- Data for Name: genus; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.genus (id, genus) FROM stdin;
+1	Amanita
+\.
+
+
+--
+-- Data for Name: mushroom; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.mushroom (id, name, species, description, img, genus, edible, toxic) FROM stdin;
+1	Amanita muscaria	muscaria	Amanita muscaria, commonly known as the fly agaric or fly amanita, is a basidiomycete of the genus Amanita. It is also a muscimol mushroom.	https://www.naturezadivina.com.br/media/amasty/blog/amanita-muscaria.jpg	1	f	t
+\.
+
+
+--
+-- Name: genus_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.genus_id_seq', 1, true);
+
+
+--
+-- Name: mushroom_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.mushroom_id_seq', 1, true);
+
+
+--
+-- Name: genus genus_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.genus
+    ADD CONSTRAINT genus_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: mushroom mushroom_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.mushroom
+    ADD CONSTRAINT mushroom_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: mushroom genus_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.mushroom
+    ADD CONSTRAINT genus_id FOREIGN KEY (genus) REFERENCES public.genus(id) NOT VALID;
+
+
+--
+-- PostgreSQL database dump complete
+--
+
