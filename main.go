@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	auth "shroom-wiki-backend/Auth"
 	middleware "shroom-wiki-backend/Middleware"
 	"strconv"
 
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
+	"github.com/rs/cors"
 )
 
 var db *sql.DB
@@ -29,6 +31,27 @@ func hasError(err error) {
 	if err != nil {
 		fmt.Println(err)
 	}
+}
+
+func getUser1(writter http.ResponseWriter, request *http.Request) {
+	rows, err := db.Query(`select * from users where id = 1`)
+
+	hasError(err)
+
+	defer rows.Close()
+
+	users := make([]auth.User, 0)
+
+	for rows.Next() {
+		user := auth.User{}
+		err = rows.Scan(&user.Id, &user.Username, &user.Email, &user.Password)
+		hasError(err)
+		users = append(users, user)
+	}
+
+	hasError(err)
+	fmt.Println(users)
+	middleware.JSON(writter, http.StatusOK, users)
 }
 
 func getShrooms(writter http.ResponseWriter, request *http.Request) {
@@ -128,6 +151,14 @@ func main() {
 	router.HandleFunc("/shrooms", getShrooms).Methods(http.MethodGet)
 	router.HandleFunc("/shroom", getShroomById).Methods(http.MethodGet)
 	router.HandleFunc("/randomShroom", getRandomShroom).Methods(http.MethodGet)
+	router.HandleFunc("/users", getUser1).Methods(http.MethodGet)
 
-	http.ListenAndServe(":4200", router)
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:3000"},
+		AllowCredentials: true,
+	})
+
+	handler := c.Handler(router)
+
+	http.ListenAndServe(":4200", handler)
 }

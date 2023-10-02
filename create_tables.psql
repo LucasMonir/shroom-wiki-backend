@@ -107,25 +107,6 @@ ALTER TABLE ONLY public.genus ALTER COLUMN id SET DEFAULT nextval('public.genus_
 
 ALTER TABLE ONLY public.mushroom ALTER COLUMN id SET DEFAULT nextval('public.mushroom_id_seq'::regclass);
 
-
---
--- Data for Name: genus; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.genus (id, genus) FROM stdin;
-1	Amanita
-\.
-
-
---
--- Data for Name: mushroom; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.mushroom (id, name, species, description, img, genus, edible, toxic) FROM stdin;
-1	Amanita muscaria	muscaria	Amanita muscaria, commonly known as the fly agaric or fly amanita, is a basidiomycete of the genus Amanita. It is also a muscimol mushroom.	https://www.naturezadivina.com.br/media/amasty/blog/amanita-muscaria.jpg	1	f	t
-\.
-
-
 --
 -- Name: genus_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -167,4 +148,42 @@ ALTER TABLE ONLY public.mushroom
 --
 -- PostgreSQL database dump complete
 --
+-- Table: public.users
 
+-- DROP TABLE IF EXISTS public.users;
+
+CREATE TABLE IF NOT EXISTS public.users
+(
+    id integer NOT NULL DEFAULT nextval('user_id_seq'::regclass),
+    username text COLLATE pg_catalog."default",
+    email text COLLATE pg_catalog."default",
+    password text COLLATE pg_catalog."default",
+    CONSTRAINT email_unique UNIQUE NULLS NOT DISTINCT (email),
+    CONSTRAINT username_unique UNIQUE NULLS NOT DISTINCT (username)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.users
+OWNER to postgres;
+
+INSERT INTO public.users(
+id, username, email, password)
+VALUES (?, ?, ?, ?);
+
+--
+-- Data for Name: genus; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.genus (id, genus) FROM stdin;
+1	Amanita
+\.
+
+
+--
+-- Data for Name: mushroom; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.mushroom (id, name, species, description, img, genus, edible, toxic) FROM stdin;
+1	Amanita muscaria	muscaria	Amanita muscaria, commonly known as the fly agaric or fly amanita, is a basidiomycete of the genus Amanita. It is also a muscimol mushroom.	https://www.naturezadivina.com.br/media/amasty/blog/amanita-muscaria.jpg	1	f	t
+\.
